@@ -14,7 +14,7 @@ const (
 
 func main() {
 	client, err := payermax.CreateClient(appId, merchantNo,
-		merchantPrivateKey, payermaxPublicKey, "", "", payermax.Dev)
+		merchantPrivateKey, payermaxPublicKey, "", "", payermax.Uat)
 	if err != nil {
 		fmt.Println(err)
 	}
