@@ -166,3 +166,34 @@ func VerifySign(signData, sign string, publicKey *rsa.PublicKey) (err error) {
 	}
 	return nil
 }
+
+func genRsaKey() (prvkey, pubkey string) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		panic(err)
+	}
+	derStream := x509.MarshalPKCS1PrivateKey(privateKey)
+	block := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: derStream,
+	}
+	prvkey = string(pem.EncodeToMemory(block))
+	publicKey := &privateKey.PublicKey
+	derPkix, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		panic(err)
+	}
+	block = &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: derPkix,
+	}
+	pubkey = string(pem.EncodeToMemory(block))
+	return
+}
+
+func CreateKeyPair() (privateKey, publicKey string) {
+	prvkey, pubkey := genRsaKey()
+	privateKey = strings.Replace(strings.Replace(strings.Replace(prvkey, "-----BEGIN RSA PRIVATE KEY-----", "", -1), "-----END RSA PRIVATE KEY-----", "", -1), "\n", "", -1)
+	publicKey = strings.Replace(strings.Replace(strings.Replace(pubkey, "-----BEGIN PUBLIC KEY-----", "", -1), "-----END PUBLIC KEY-----", "", -1), "\n", "", -1)
+	return
+}
