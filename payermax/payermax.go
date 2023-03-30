@@ -3,15 +3,10 @@ package payermax
 import (
 	"crypto/rsa"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strings"
 	"time"
-)
-
-var (
-	ErrBadResponse = errors.New("alipay: bad response")
 )
 
 type Client struct {
