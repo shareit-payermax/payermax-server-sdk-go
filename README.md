@@ -10,7 +10,7 @@ go get github.com/payermax/go-sdk
 
 import (
 	"fmt"
-	"github.com/payermax-sdk-go/payermax"
+	""github.com/PayermaxZhanglong/payermax-server-sdk-go/payermax""
 )
 
 const (
