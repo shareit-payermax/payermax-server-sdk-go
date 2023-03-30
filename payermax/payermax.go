@@ -19,6 +19,8 @@ type Client struct {
 	mu                 sync.Mutex
 	appId              string
 	merchantNo         string
+	spMerchantNo       string
+	merchantAuthToken  string
 	baseUrl            string
 	httpClient         *http.Client
 	merchantPrivateKey *rsa.PrivateKey // 商户私钥
@@ -26,7 +28,7 @@ type Client struct {
 
 }
 
-func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, baseUrl string) (client *Client, err error) {
+func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl string) (client *Client, err error) {
 	priKey, err := DecodePrivateKey(merchantPrivateKey)
 	if err != nil {
 		return nil, err
@@ -43,6 +45,8 @@ func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, base
 	client.merchantPrivateKey = priKey
 	client.payermaxPublicKey = pubKey
 	client.baseUrl = baseUrl
+	client.spMerchantNo = spMerchantNo
+	client.merchantAuthToken = merchantAuthToken
 
 	client.httpClient = &http.Client{
 		Timeout: 15 * time.Second,
@@ -71,6 +75,9 @@ func (this *Client) Send(apiName, data string) (resp string, resErr error) {
 	reqMap["appId"] = this.appId
 	reqMap["requestTime"] = time.Now().UTC().Format("2006-01-02T15:04:05.999Z07:00")
 	reqMap["data"] = dataMap
+	if this.spMerchantNo != "" {
+		reqMap["merchantAuthToken"] = this.merchantAuthToken
+	}
 
 	resultBytes, err := json.Marshal(reqMap)
 	if err != nil {
@@ -83,6 +90,10 @@ func (this *Client) Send(apiName, data string) (resp string, resErr error) {
 	req.Header.Set("Content-Type", "application/json;charset=utf-8")
 	rsaSign, resErr := GetRsaSign(resultJson, this.merchantPrivateKey)
 	req.Header.Set("sign", rsaSign)
+	req.Header.Set("sdk-ver", "go-1.0")
+	if this.spMerchantNo != "" {
+		req.Header.Set("sign", rsaSign)
+	}
 
 	response, err := this.httpClient.Do(req)
 	if response != nil {
