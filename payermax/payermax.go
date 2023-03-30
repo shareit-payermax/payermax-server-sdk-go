@@ -69,7 +69,7 @@ func (this *Client) Send(apiName, data string) (resp string, resErr error) {
 	reqMap["requestTime"] = time.Now().UTC().Format("2006-01-02T15:04:05.999Z07:00")
 	reqMap["data"] = dataMap
 	if this.spMerchantNo != "" {
-		reqMap["merchantAuthToken"] = this.merchantAuthToken
+		reqMap["spMerchantNo"] = this.spMerchantNo
 	}
 
 	resultBytes, err := json.Marshal(reqMap)
@@ -85,7 +85,7 @@ func (this *Client) Send(apiName, data string) (resp string, resErr error) {
 	req.Header.Set("sign", rsaSign)
 	req.Header.Set("sdk-ver", "go-1.0")
 	if this.spMerchantNo != "" {
-		req.Header.Set("sign", rsaSign)
+		req.Header.Set("merchantAuthToken", this.merchantAuthToken)
 	}
 
 	response, err := this.httpClient.Do(req)
