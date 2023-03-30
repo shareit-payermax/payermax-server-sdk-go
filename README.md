@@ -10,7 +10,7 @@ go get github.com/payermax/go-sdk
 
 import (
 	"fmt"
-	""github.com/PayermaxZhanglong/payermax-server-sdk-go/payermax""
+    "github.com/PayermaxZhanglong/payermax-server-sdk-go/payermax"
 )
 
 const (
@@ -35,4 +35,9 @@ func main() {
 	}
 	fmt.Println(resp)
 }
+```
+### verify notify sign
+
+```go
+ref VerifySign function
 ```
