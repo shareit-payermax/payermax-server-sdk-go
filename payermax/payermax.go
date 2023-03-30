@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -16,7 +15,6 @@ var (
 )
 
 type Client struct {
-	mu                 sync.Mutex
 	appId              string
 	merchantNo         string
 	spMerchantNo       string
