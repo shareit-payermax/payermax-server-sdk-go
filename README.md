@@ -9,22 +9,21 @@ go get github.com/shareit-payermax/payermax-server-sdk-go/payermax
 ```go
 
 import (
-	"fmt"
+    "fmt"
     "github.com/shareit-payermax/payermax-server-sdk-go/payermax"
 )
 
 const (
-	appId = "your appId"
-	merchantNo = "your merchantNo"
-	merchantPrivateKey = "your privateKey"
-	payermaxPublicKey = "payermax public key"
-) 
+    appId = "your appId"
+    merchantNo = "your merchantNo"
+    merchantPrivateKey = "your privateKey"
+    payermaxPublicKey = "payermax public key"
+)
 
 func main() {
-    var cb gobreaker.Settings
     settings := payermax.ClientSettings{
-        CbSettings: cb,
-        BaseUrl:    payermax.Uat,
+        BaseUrl:       payermax.Uat,
+        ClientTimeout: 5 * time.Second,
     }
     client, err := payermax.CreateClient(appId, merchantNo,
     merchantPrivateKey, payermaxPublicKey, "", "", settings)
@@ -47,16 +46,16 @@ func main() {
 ```go
 
 import (
-	"fmt"
+    "fmt"
     "github.com/shareit-payermax/payermax-server-sdk-go/payermax"
 )
 
 const (
-	appId = "your appId"
-	merchantNo = "your merchantNo"
-	merchantPrivateKey = "your privateKey"
-	payermaxPublicKey = "payermax public key"
-) 
+    appId = "your appId"
+    merchantNo = "your merchantNo"
+    merchantPrivateKey = "your privateKey"
+    payermaxPublicKey = "payermax public key"
+)
 
 func main() {
     var cb gobreaker.Settings
@@ -64,8 +63,9 @@ func main() {
     cb.Name = "payermax"
     
     settings := payermax.ClientSettings{
-        CbSettings: cb,
-        BaseUrl:    payermax.Uat,
+        CbSettings:    cb,
+        BaseUrl:       payermax.Uat,
+        ClientTimeout: 5 * time.Second,
     }
     
     client, err := payermax.CreateClient(appId, merchantNo,

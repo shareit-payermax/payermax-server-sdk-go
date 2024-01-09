@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/shareit-payermax/payermax-server-sdk-go/payermax"
 	"github.com/sony/gobreaker"
+	"time"
 )
 
 const (
@@ -21,10 +22,9 @@ func main() {
 }
 
 func sendToServer() {
-	var cb gobreaker.Settings
 	settings := payermax.ClientSettings{
-		CbSettings: cb,
-		BaseUrl:    payermax.Uat,
+		BaseUrl:       payermax.Uat,
+		ClientTimeout: 5 * time.Second,
 	}
 	client, err := payermax.CreateClient(appId, merchantNo,
 		merchantPrivateKey, payermaxPublicKey, "", "", settings)
@@ -47,8 +47,9 @@ func sendToServerAutoSwitchUrl() {
 	cb.Name = "payermax"
 
 	settings := payermax.ClientSettings{
-		CbSettings: cb,
-		BaseUrl:    payermax.Uat,
+		CbSettings:    cb,
+		BaseUrl:       payermax.Uat,
+		ClientTimeout: 5 * time.Second,
 	}
 
 	client, err := payermax.CreateClient(appId, merchantNo,
