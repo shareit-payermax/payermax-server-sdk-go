@@ -27,7 +27,7 @@ func init() {
 	//统计请求数量和比例的周期，这里表示统计1分钟内的请求数量和比例
 	st.Interval = time.Minute
 	//熔断后多长时间开始把开关设置成半开状态，好检测主域名是否正常
-	st.Timeout = time.Minute
+	st.Timeout = 30 * time.Second
 	//st.OnStateChange = func(name string, from gobreaker.State, to gobreaker.State) {
 	//}
 	//判断调用是否成功，可以精细定义各种异常信息
