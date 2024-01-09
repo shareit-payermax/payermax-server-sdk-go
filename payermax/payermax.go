@@ -17,6 +17,10 @@ func init() {
 
 }
 
+/*
+*
+对外暴露框架配置属性
+*/
 type ClientSettings struct {
 	CbSettings    gobreaker.Settings
 	ClientTimeout time.Duration
