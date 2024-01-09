@@ -21,8 +21,13 @@ func main() {
 }
 
 func sendToServer() {
+	var cb gobreaker.Settings
+	settings := payermax.ClientSettings{
+		CbSettings: cb,
+		BaseUrl:    payermax.Uat,
+	}
 	client, err := payermax.CreateClient(appId, merchantNo,
-		merchantPrivateKey, payermaxPublicKey, "", "", payermax.Uat)
+		merchantPrivateKey, payermaxPublicKey, "", "", settings)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -41,8 +46,13 @@ func sendToServerAutoSwitchUrl() {
 	//The circuit breaker must have the 'name' attribute set to take effect.
 	cb.Name = "payermax"
 
-	client, err := payermax.CreateAutoSwitchUrlClient(appId, merchantNo,
-		merchantPrivateKey, payermaxPublicKey, "", "", payermax.Uat, cb)
+	settings := payermax.ClientSettings{
+		CbSettings: cb,
+		BaseUrl:    payermax.Uat,
+	}
+
+	client, err := payermax.CreateClient(appId, merchantNo,
+		merchantPrivateKey, payermaxPublicKey, "", "", settings)
 	if err != nil {
 		fmt.Println(err)
 	}

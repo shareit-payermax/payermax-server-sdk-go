@@ -21,20 +21,24 @@ const (
 ) 
 
 func main() {
-	client, err := payermax.CreateClient(appId, merchantNo, 
-		merchantPrivateKey, payermaxPublicKey, payermax.Uat)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	data := `{"outTradeNo":"PAM20220109123456111617V1","subject":"hello","totalAmount":"0.99","currency":"USD","country":"HK","userId":"100000002","goodsDetails":[{"goodsId":"com.corps.gp.60","goodsName":"60鑽石","quantity":"1","price":"0.99","goodsCurrency":"USD","showUrl":"httpw://www.okgame.com"}],"language":"en","reference":"300011","frontCallbackUrl":"https://payapi.okgame.com/v2/PayerMax/result.html","notifyUrl":"https://payapi.okgame.com/v2/PayerMax/Callback.ashx"}`
-	
-	resp, err := client.Send("orderAndPay", data)
-	
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(resp)
+    var cb gobreaker.Settings
+    settings := payermax.ClientSettings{
+        CbSettings: cb,
+        BaseUrl:    payermax.Uat,
+    }
+    client, err := payermax.CreateClient(appId, merchantNo,
+    merchantPrivateKey, payermaxPublicKey, "", "", settings)
+    if err != nil {
+        fmt.Println(err)
+    }
+    
+    data := `{"outTradeNo":"PAM2022010912345611217V2","subject":"hello","totalAmount":"0.99","currency":"USD","country":"HK","userId":"100000002","goodsDetails":[{"goodsId":"com.corps.gp.60","goodsName":"60鑽石","quantity":"1","price":"0.99","goodsCurrency":"USD","showUrl":"httpw://www.okgame.com"}],"language":"en","reference":"300011","frontCallbackUrl":"https://payapi.okgame.com/v2/PayerMax/result.html","notifyUrl":"https://payapi.okgame.com/v2/PayerMax/Callback.ashx"}`
+    
+    resp, err := client.Send("orderAndPay", data)
+    if err != nil {
+        fmt.Println(err)
+    }
+    fmt.Println(resp)
 }
 ```
 
@@ -59,8 +63,13 @@ func main() {
     //The circuit breaker must have the 'name' attribute set to take effect.
     cb.Name = "payermax"
     
-    client, err := payermax.CreateAutoSwitchUrlClient(appId, merchantNo,
-    merchantPrivateKey, payermaxPublicKey, "", "", payermax.Uat, cb)
+    settings := payermax.ClientSettings{
+        CbSettings: cb,
+        BaseUrl:    payermax.Uat,
+    }
+    
+    client, err := payermax.CreateClient(appId, merchantNo,
+    merchantPrivateKey, payermaxPublicKey, "", "", settings)
     if err != nil {
         fmt.Println(err)
     }

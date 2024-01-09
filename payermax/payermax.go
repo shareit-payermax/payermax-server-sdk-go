@@ -17,19 +17,24 @@ func init() {
 
 }
 
+type ClientSettings struct {
+	CbSettings    gobreaker.Settings
+	ClientTimeout time.Duration
+	BaseUrl       string
+}
+
 type Client struct {
 	appId              string
 	merchantNo         string
 	spMerchantNo       string
 	merchantAuthToken  string
-	baseUrl            string
 	httpClient         *http.Client
 	merchantPrivateKey *rsa.PrivateKey // 商户私钥
 	payermaxPublicKey  *rsa.PublicKey  // payermax公钥钥
-
+	clientSettings     ClientSettings
 }
 
-func CreateAutoSwitchUrlClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl string, cbSettings gobreaker.Settings) (client *Client, err error) {
+func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken string, clientSettings ClientSettings) (client *Client, err error) {
 	priKey, err := DecodePrivateKey(merchantPrivateKey)
 	if err != nil {
 		return nil, err
@@ -45,14 +50,18 @@ func CreateAutoSwitchUrlClient(appId, merchantNo, merchantPrivateKey, payermaxPu
 	client.merchantNo = merchantNo
 	client.merchantPrivateKey = priKey
 	client.payermaxPublicKey = pubKey
-	client.baseUrl = baseUrl
 	client.spMerchantNo = spMerchantNo
 	client.merchantAuthToken = merchantAuthToken
+	client.clientSettings = clientSettings
 
+	if clientSettings.ClientTimeout <= 0 {
+		clientSettings.ClientTimeout = 15 * time.Second
+	}
 	client.httpClient = &http.Client{
-		Timeout: 15 * time.Second,
+		Timeout: clientSettings.ClientTimeout,
 	}
 
+	var cbSettings = clientSettings.CbSettings
 	//如果有名称则初始化断路器
 	if cbSettings.Name != "" {
 		//半开状态连续请求成功数量大于这个值则把熔断器关闭
@@ -90,11 +99,6 @@ func CreateAutoSwitchUrlClient(appId, merchantNo, merchantPrivateKey, payermaxPu
 	}
 
 	return client, nil
-}
-
-func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl string) (client *Client, err error) {
-	var st gobreaker.Settings
-	return CreateAutoSwitchUrlClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl, st)
 }
 
 func (this *Client) SendWithUrl(apiName, data string, baseUrl string) (resp string, resErr error) {
@@ -169,7 +173,7 @@ func (this *Client) SendWithUrl(apiName, data string, baseUrl string) (resp stri
 }
 
 func (this *Client) Send(apiName, data string) (resp string, resErr error) {
-	return this.SendWithUrl(apiName, data, this.baseUrl)
+	return this.SendWithUrl(apiName, data, this.clientSettings.BaseUrl)
 }
 
 func (this *Client) SendWithAutoSwitchUrl(apiName, data string) (resp string, resErr error) {
@@ -177,7 +181,7 @@ func (this *Client) SendWithAutoSwitchUrl(apiName, data string) (resp string, re
 		return "", errors.New("circuitBreaker is not init please use CreateAutoSwitchUrlClient function create it")
 	}
 
-	if this.baseUrl == Uat {
+	if this.clientSettings.BaseUrl == Uat {
 		return this.Send(apiName, data)
 	}
 
