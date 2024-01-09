@@ -2,7 +2,7 @@
 
 ### install
 ```go
-go get github.com/payermax/go-sdk
+go get github.com/shareit-payermax/payermax-server-sdk-go/payermax
 ```
 
 ### use demo
