@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/PayermaxZhanglong/payermax-server-sdk-go/payermax"
+	"github.com/shareit-payermax/payermax-server-sdk-go/payermax"
 )
 
 const (
