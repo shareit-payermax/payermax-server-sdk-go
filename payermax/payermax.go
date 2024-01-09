@@ -14,28 +14,7 @@ import (
 var cb *gobreaker.CircuitBreaker
 
 func init() {
-	var st gobreaker.Settings
-	st.Name = "payermax"
-	//半开状态连续请求成功数量大于这个值则把熔断器关闭
-	st.MaxRequests = 5
-	//熔断的条件
-	st.ReadyToTrip = func(counts gobreaker.Counts) bool {
-		failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
-		//请求数量大于3且失败率超过50就进行熔断
-		return counts.Requests >= 3 && failureRatio >= 0.5
-	}
-	//统计请求数量和比例的周期，这里表示统计1分钟内的请求数量和比例
-	st.Interval = time.Minute
-	//熔断后多长时间开始把开关设置成半开状态，好检测主域名是否正常
-	st.Timeout = 30 * time.Second
-	//st.OnStateChange = func(name string, from gobreaker.State, to gobreaker.State) {
-	//}
-	//判断调用是否成功，可以精细定义各种异常信息
-	st.IsSuccessful = func(err error) bool {
-		return err == nil
-	}
 
-	cb = gobreaker.NewCircuitBreaker(st)
 }
 
 type Client struct {
@@ -50,7 +29,7 @@ type Client struct {
 
 }
 
-func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl string) (client *Client, err error) {
+func CreateAutoSwitchUrlClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl string, cbSettings gobreaker.Settings) (client *Client, err error) {
 	priKey, err := DecodePrivateKey(merchantPrivateKey)
 	if err != nil {
 		return nil, err
@@ -74,7 +53,48 @@ func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMe
 		Timeout: 15 * time.Second,
 	}
 
+	//如果有名称则初始化断路器
+	if cbSettings.Name != "" {
+		//半开状态连续请求成功数量大于这个值则把熔断器关闭
+		if cbSettings.MaxRequests <= 0 {
+			cbSettings.MaxRequests = 5
+		}
+
+		//熔断的条件
+		if cbSettings.ReadyToTrip == nil {
+			cbSettings.ReadyToTrip = func(counts gobreaker.Counts) bool {
+				failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
+				//请求数量大于3且失败率超过50就进行熔断
+				return counts.Requests >= 3 && failureRatio >= 0.5
+			}
+		}
+
+		//统计请求数量和比例的周期，这里表示统计1分钟内的请求数量和比例
+		if cbSettings.Interval <= 0 {
+			cbSettings.Interval = time.Minute
+		}
+
+		//熔断后多长时间开始把开关设置成半开状态，好检测主域名是否正常
+		if cbSettings.Timeout <= 0 {
+			cbSettings.Timeout = 30 * time.Second
+		}
+
+		//判断调用是否成功，可以精细定义各种异常信息
+		if cbSettings.IsSuccessful == nil {
+			cbSettings.IsSuccessful = func(err error) bool {
+				return err == nil
+			}
+		}
+
+		cb = gobreaker.NewCircuitBreaker(cbSettings)
+	}
+
 	return client, nil
+}
+
+func CreateClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl string) (client *Client, err error) {
+	var st gobreaker.Settings
+	return CreateAutoSwitchUrlClient(appId, merchantNo, merchantPrivateKey, payermaxPublicKey, spMerchantNo, merchantAuthToken, baseUrl, st)
 }
 
 func (this *Client) SendWithUrl(apiName, data string, baseUrl string) (resp string, resErr error) {
@@ -153,6 +173,10 @@ func (this *Client) Send(apiName, data string) (resp string, resErr error) {
 }
 
 func (this *Client) SendWithAutoSwitchUrl(apiName, data string) (resp string, resErr error) {
+	if cb == nil {
+		return "", errors.New("circuitBreaker is not init please use CreateAutoSwitchUrlClient function create it")
+	}
+
 	if this.baseUrl == Uat {
 		return this.Send(apiName, data)
 	}

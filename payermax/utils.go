@@ -83,7 +83,7 @@ func DecodePublicKey(publicKeyStr string) (publicKey *rsa.PublicKey, err error) 
 		}
 		pubKey, ok := pubKeyCert.PublicKey.(*rsa.PublicKey)
 		if !ok {
-			return nil, fmt.Errorf("公钥证书提取公钥出错 [%s]", pemContent)
+			return nil, fmt.Errorf("certificate get publicKey error [%s]", pemContent)
 		}
 		publicKey = pubKey
 	case "PUBLIC KEY":
@@ -93,7 +93,7 @@ func DecodePublicKey(publicKeyStr string) (publicKey *rsa.PublicKey, err error) 
 		}
 		pubKey, ok := pub.(*rsa.PublicKey)
 		if !ok {
-			return nil, fmt.Errorf("公钥解析出错 [%s]", pemContent)
+			return nil, fmt.Errorf("publicKey parse error [%s]", pemContent)
 		}
 		publicKey = pubKey
 	case "RSA PUBLIC KEY":
@@ -117,12 +117,12 @@ func DecodePrivateKey(privateKeyStr string) (privateKey *rsa.PrivateKey, err err
 	if err != nil {
 		pk8, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
-			return nil, fmt.Errorf("私钥解析出错 [%s]", pemContent)
+			return nil, fmt.Errorf("privateKey parse error [%s]", pemContent)
 		}
 		var ok bool
 		privateKey, ok = pk8.(*rsa.PrivateKey)
 		if !ok {
-			return nil, fmt.Errorf("私钥解析出错 [%s]", pemContent)
+			return nil, fmt.Errorf("privateKey parse error [%s]", pemContent)
 		}
 	}
 	return privateKey, nil
